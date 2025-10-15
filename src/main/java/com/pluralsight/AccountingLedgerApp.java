@@ -9,7 +9,7 @@ public class AccountingLedgerApp {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        // READ TRANSACTIONS FROM FILE
+        // READ AND DISPLAY EXISTING TRANSACTIONS FROM FILE
         try {
             FileReader fileReader = new FileReader("Transaction.csv");
             BufferedReader bufferedReader = new BufferedReader(fileReader);
@@ -90,12 +90,14 @@ public class AccountingLedgerApp {
         saveTransaction(description, vendor, -Math.abs(amount)); //PAYMENT IS NEGATIVE
     }
 
-    //SAVE TRANSACTION
+    //SAVE TRANSACTION: SAVES THE TRANSACTION OBJECT TO THE CSV FILE
     static void saveTransaction(String description, String vendor, double amount) {
         String date = LocalDate.now().toString();
         String time = LocalTime.now().withNano(0).toString();
 
         Transaction transaction = new Transaction(date, time, description, vendor, amount);
+
+        //WRITE THE TRANSACTION TO THE CSV FILE (APPEND MODE)
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("transactions.csv", true))) {
             writer.write(transaction.toString() + "\n");
             System.out.println("Transaction saved!");
