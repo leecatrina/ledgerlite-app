@@ -1,12 +1,29 @@
 package com.pluralsight;
 
+import java.io.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Scanner;
 
 public class AccountingLedgerApp {
     public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        // READ TRANSACTIONS FROM FILE
+        try {
+            FileReader fileReader = new FileReader("Transaction.txt");
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            String input;
+            while ((input = bufferedReader.readLine()) != null) {
+                System.out.println(input);
+            }
+            bufferedReader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         //HOME SCREEN
 
-        Scanner scanner = new Scanner(System.in);
         boolean running = true;
 
         while (running) {
@@ -22,15 +39,16 @@ public class AccountingLedgerApp {
 
             switch (choice) {
                 case "D":
-                    System.out.println("\n--- Add Deposit ---");
+                    addDeposit(scanner); //Call a method
                     break;
 
                 case "P":
-                    System.out.println("\n--- Make Payment (Debit) ---");
+                    makePayment(scanner);
                     break;
 
                 case "L":
                     System.out.println("\n--- Ledger ---");
+                    System.out.println("Ledger display");
                     break;
 
                 case "X":
@@ -43,5 +61,48 @@ public class AccountingLedgerApp {
                     break;
             }
         }
+        scanner.close();
     }
+
+    //ADD DEPOSIT
+    static void addDeposit(Scanner scanner) {
+        System.out.println("\n--- Add Deposit ---");
+        System.out.print("Enter description: ");
+        String description = scanner.nextLine();
+        System.out.print("Enter vendor: ");
+        String vendor = scanner.nextLine();
+        System.out.print("Enter amount: ");
+        double amount = Double.parseDouble(scanner.nextLine());
+
+        saveTransaction(description, vendor, amount); //PAYMENT IS POSITIVE
+    }
+
+    //MAKE PAYMENT
+    static void makePayment(Scanner scanner) {
+        System.out.println("\n--- Make Payment (Debit) ---");
+        System.out.print("Enter description: ");
+        String description = scanner.nextLine();
+        System.out.print("Enter vendor: ");
+        String vendor = scanner.nextLine();
+        System.out.print("Enter amount: ");
+        double amount = Double.parseDouble(scanner.nextLine());
+
+        saveTransaction(description, vendor, -Math.abs(amount)); //PAYMENT IS NEGATIVE
+    }
+
+    //SAVE TRANSACTION
+    static void saveTransaction(String description, String vendor, double amount) {
+        String date = LocalDate.now().toString();
+        String time = LocalTime.now().withNano(0).toString();
+
+        Transaction transaction = new Transaction(date, time, description, vendor, amount);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("transactions.csv", true))) {
+            writer.write(transaction.toString() + "\n");
+            System.out.println("Transaction saved!");
+        } catch (IOException e) {
+            System.out.println("Error saving transaction: " + e.getMessage());
+        }
+    }
+    //READ AND DISPLAY LEDGER
+
 }
