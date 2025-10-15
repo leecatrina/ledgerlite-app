@@ -11,7 +11,7 @@ public class AccountingLedgerApp {
 
         // READ TRANSACTIONS FROM FILE
         try {
-            FileReader fileReader = new FileReader("Transaction.txt");
+            FileReader fileReader = new FileReader("Transaction.csv");
             BufferedReader bufferedReader = new BufferedReader(fileReader);
             String input;
             while ((input = bufferedReader.readLine()) != null) {
