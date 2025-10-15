@@ -7,7 +7,7 @@ public class Transaction {
     private String vendor;
     private double amount;
 
-    //constructor: create a new transaction
+    //constructor: creates a new transaction
     public Transaction(String date, String time, String description, String vendor, double amount) {
         this.date = date;
         this.time = time;
@@ -16,6 +16,7 @@ public class Transaction {
         this.amount = amount;
     }
     //getters: returns date
+
     public String getDate() {
         return date;
     }
@@ -35,8 +36,9 @@ public class Transaction {
     public double getAmount() {
         return amount;
     }
+    //No Setters because we do NOT need to change any transaction details once they're recorded!
 
-    //format transaction
+    //toString Method: formats transaction
     public String toString() {
         return date + "|" + time + "|" + description + "|" + vendor + "|" + amount;
     }
