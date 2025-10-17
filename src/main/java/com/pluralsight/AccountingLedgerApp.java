@@ -8,10 +8,13 @@ import java.util.List;
 import java.util.Scanner;
 
 public class AccountingLedgerApp {
-    private static List<Transaction> transactions = new ArrayList<>(); //STORES TRANSACTIONS GLOBALLY
+    //Keeps all transaction in memory (you can filter and display them easily)
+    //Class field = it's stored for the whole program
+
+    private static final List<Transaction> transactions = new ArrayList<>();
 
     public static void main(String[] args) {
-        loadTransactions();
+        loadTransactions(); //Fills up the ArrayList with data from the CSV
         Scanner scanner = new Scanner(System.in);
 
         //========== HOMESCREEN MENU ============
@@ -33,7 +36,7 @@ public class AccountingLedgerApp {
 
             switch (choice) {
                 case "D":
-                    addDeposit(scanner); //Call a method
+                    addDeposit(scanner); //User inputs info
                     break;
 
                 case "P":
@@ -64,6 +67,23 @@ public class AccountingLedgerApp {
         scanner.close();
     }
 
+    //RUNS AT STARTUP/READS THE LIST. TRANSACTION LIST HAS EVERYTHING FROM THE FILE
+    private static void loadTransactions() {
+        transactions.clear();
+        try (BufferedReader reader = new BufferedReader(new FileReader("transactions.csv"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                //skips the header row and any empty lines
+                if (line.trim().isEmpty() || line.toLowerCase().startsWith("date")) continue;
+
+                Transaction t = parseTransaction(line);
+                if (t != null) transactions.add(t);
+            }
+        } catch (IOException e) {
+            System.out.println("No transactions found yet.");
+        }
+    }
+
     //========== LEDGER MENU ===========
 
     private static void ledgerMenu(Scanner scanner) {
@@ -81,7 +101,7 @@ public class AccountingLedgerApp {
 
             switch (choice.toUpperCase()) {
                 case "A":
-                    viewAllEntries();
+                    viewAllEntries(); //User views info only
                     break;
                 case "D":
                     viewDeposits();
@@ -127,7 +147,7 @@ public class AccountingLedgerApp {
                     // Previous month
                     break;
                 case "3":
-
+                    showYearToDate();
                     // Year To Date
                     break;
                 case "4":
@@ -151,7 +171,7 @@ public class AccountingLedgerApp {
 
     // (ADD DEPOSIT)
 
-    static void addDeposit(Scanner scanner) {
+    private static void addDeposit(Scanner scanner) {
         System.out.println("\n--- Add Deposit ---");
         System.out.print("Enter description: ");
         String description = scanner.nextLine();
@@ -160,12 +180,13 @@ public class AccountingLedgerApp {
         System.out.print("Enter amount: ");
         double amount = Double.parseDouble(scanner.nextLine());
 
-        saveTransaction(description, vendor, amount); //PAYMENT IS POSITIVE
+        //PAYMENT IS POSITIVE, CREATES A NEW TRANSACTION OBJECT AND WRITES IT INTO THE FILE
+        saveTransaction(description, vendor, amount);
     }
 
     // (MAKE PAYMENT)
 
-    static void makePayment(Scanner scanner) {
+    private static void makePayment(Scanner scanner) {
         System.out.println("\n--- Make Payment (Debit) ---");
         System.out.print("Enter description: ");
         String description = scanner.nextLine();
@@ -174,12 +195,13 @@ public class AccountingLedgerApp {
         System.out.print("Enter amount: ");
         double amount = Double.parseDouble(scanner.nextLine());
 
-        saveTransaction(description, vendor, -Math.abs(amount)); //PAYMENT IS NEGATIVE
+        // PAYMENT IS NEGATIVE, CREATES A NEW TRANSACTION OBJECT AND WRITES IT INTO THE FILE
+        saveTransaction(description, vendor, -Math.abs(amount));
     }
 
     // (SAVE TRANSACTION: SAVES THE TRANSACTION OBJECT TO THE CSV FILE)
 
-    static void saveTransaction(String description, String vendor, double amount) {
+    private static void saveTransaction(String description, String vendor, double amount) {
         LocalDate date = LocalDate.now();
         LocalTime time = LocalTime.now().withNano(0);
 
@@ -189,6 +211,7 @@ public class AccountingLedgerApp {
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("transactions.csv", true))) {
             writer.write(transaction.toString() + "\n");
+            transactions.add(transaction);
             System.out.println("Transaction saved!");
         } catch (IOException e) {
             System.out.println("Error saving transaction: " + e.getMessage());
@@ -196,10 +219,10 @@ public class AccountingLedgerApp {
     }
 
     // (CURRENT/VIEW BALANCE)
-
+    //TURNS EACH LINE BACK INTO A TRANSACTION OBJECT
     private static Transaction parseTransaction(String line) {
         try {
-            String[] parts = line.split("\\|");
+            String[] parts = line.split("\\|"); //Splits text wherever there's a pipe |
             LocalDate date = LocalDate.parse(parts[0]);
             LocalTime time = LocalTime.parse(parts[1]);
             String description = parts[2];
@@ -213,45 +236,12 @@ public class AccountingLedgerApp {
             return null;
         }
     }
-
-    private static void loadTransactions() {
-        transactions.clear();
-        try (BufferedReader reader = new BufferedReader(new FileReader("transactions.csv"))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                //skips the header row and any empty lines
-                if (line.trim().isEmpty() || line.toLowerCase().startsWith("date")) continue;
-
-                Transaction t = parseTransaction(line);
-                if (t != null) transactions.add(t);
-            }
-        } catch (IOException e) {
-            System.out.println("No transactions found yet.");
-        }
-    }
     //CALCULATE BALANCE
 
-    static double calculateBalance() {
+    private static double calculateBalance() {
         double balance = 0.0;
-
-        try (BufferedReader reader = new BufferedReader(new FileReader("transactions.csv"))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                //skips header or empty lines
-                if (line.trim().isEmpty() || line.toLowerCase().startsWith("date")) {
-                    continue;
-                }
-                // Split line by "|" to get the amount (last element)
-                String[] parts = line.split("\\|");
-                if (parts.length < 5) continue;
-
-                double amount = Double.parseDouble(parts[4]);
-                balance += amount;
-            }
-        } catch (IOException e) {
-            System.out.println("No transactions to calculate balance.");
-        } catch (NumberFormatException e) {
-            System.out.println("Error reading transaction amounts.");
+        for (Transaction t : transactions) {  // Loop through the ArrayList
+            balance += t.getAmount();
         }
         return balance;
     }
@@ -261,11 +251,11 @@ public class AccountingLedgerApp {
     //VIEW ALL ENTRIES
 
     public static void viewAllEntries() {
-        if (transactions.isEmpty()) {
+        if (transactions.isEmpty()) { //Checks if there are NO transaction
             System.out.println("No transactions found.");
         } else {
             System.out.println("\n--- ALL TRANSACTIONS ---");
-            for (int i = transactions.size() - 1; i >= 0; i--) { // NEWEST FIRST
+            for (int i = transactions.size() - 1; i >= 0; i--) { // NEWEST FIRST, Loops it backwards
                 System.out.println(transactions.get(i));
             }
         }
@@ -274,9 +264,9 @@ public class AccountingLedgerApp {
 
     public static void viewDeposits() {
         System.out.println("\n--- DEPOSITS ---");
-        for (int i = transactions.size() - 1; i >= 0; i--) {
+        for (int i = transactions.size() - 1; i >= 0; i--) { //Loops backwards to show NEWEST
             Transaction t = transactions.get(i);
-            if (t.getAmount() > 0) {
+            if (t.getAmount() > 0) { //Checks if the amount is POSITIVE (Money coming in)
                 System.out.println(t);
             }
         }
@@ -285,9 +275,9 @@ public class AccountingLedgerApp {
 
     public static void viewPayments() {
         System.out.println("\n--- PAYMENTS ---");
-        for (int i = transactions.size() - 1; i >= 0; i--) {
+        for (int i = transactions.size() - 1; i >= 0; i--) { //Loops backwards to show NEWEST
             Transaction t = transactions.get(i);
-            if (t.getAmount() < 0) {
+            if (t.getAmount() < 0) { //Checks if amount is NEGATIVE (Money going out)
                 System.out.println(t);
             }
         }
@@ -299,12 +289,12 @@ public class AccountingLedgerApp {
     private static void showMonthToDate() {
         System.out.println("\n--- MONTH TO DATE ---");
         LocalDate today = LocalDate.now();
-        LocalDate startOfMonth = today.withDayOfMonth(1);
+        LocalDate startOfMonth = today.withDayOfMonth(1); //first day of the current month
 
-        for (int i = transactions.size() - 1; i >= 0; i--) {
+        for (int i = transactions.size() - 1; i >= 0; i--) { //loops backwards
             Transaction t = transactions.get(i);
             if (!t.getDate().isBefore(startOfMonth) && !t.getDate().isAfter(today)) {
-                System.out.println(t);
+                System.out.println(t); //prints from the start of this month to today
             }
         }
     }
@@ -319,7 +309,7 @@ public class AccountingLedgerApp {
         for (int i = transactions.size() - 1; i >= 0; i--) {
             Transaction t = transactions.get(i);
             if (!t.getDate().isBefore(startOfLastMonth) && !t.getDate().isAfter(endOfLastMonth)) {
-                System.out.println(t);
+                System.out.println(t); //prints transactions that fall in the previous month
             }
         }
     }
@@ -333,7 +323,7 @@ public class AccountingLedgerApp {
         for (int i = transactions.size() - 1; i >= 0; i--) {
             Transaction t = transactions.get(i);
             if (!t.getDate().isBefore(startOfYear) && !t.getDate().isAfter(today)) {
-                System.out.println(t);
+                System.out.println(t); //prints transactions from Jan 1 to today
             }
         }
     }
@@ -349,7 +339,7 @@ public class AccountingLedgerApp {
         for (int i = transactions.size() - 1; i >= 0; i--) {
             Transaction t = transactions.get(i);
             if (!t.getDate().isBefore(startOfLastYear) && !t.getDate().isAfter(endOfLastYear)) {
-                System.out.println(t);
+                System.out.println(t); //prints transactions only from last year
             }
         }
     }
