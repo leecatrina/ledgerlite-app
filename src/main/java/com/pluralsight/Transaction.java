@@ -1,14 +1,17 @@
 package com.pluralsight;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 public class Transaction {
-    private String date;
-    private String time;
+    private LocalDate date;
+    private LocalTime time;
     private String description;
     private String vendor;
     private double amount;
 
     //constructor: creates a new transaction
-    public Transaction(String date, String time, String description, String vendor, double amount) {
+    public Transaction(LocalDate date, LocalTime time, String description, String vendor, double amount) {
         this.date = date;
         this.time = time;
         this.description = description;
@@ -17,11 +20,11 @@ public class Transaction {
     }
     //getters: returns date
 
-    public String getDate() {
+    public LocalDate getDate() {
         return date;
     }
     //returns time
-    public String getTime() {
+    public LocalTime getTime() {
         return time;
     }
     //returns description
@@ -39,6 +42,7 @@ public class Transaction {
     //No Setters because we do NOT need to change any transaction details once they're recorded!
 
     //toString Method: formats transaction
+    @Override
     public String toString() {
         return date + "|" + time + "|" + description + "|" + vendor + "|" + amount;
     }
