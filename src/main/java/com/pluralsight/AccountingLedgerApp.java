@@ -171,32 +171,74 @@ public class AccountingLedgerApp {
 
     // (ADD DEPOSIT)
 
-    private static void addDeposit(Scanner scanner) {
-        System.out.println("\n--- Add Deposit ---");
-        System.out.print("Enter description: ");
-        String description = scanner.nextLine();
-        System.out.print("Enter vendor: ");
-        String vendor = scanner.nextLine();
-        System.out.print("Enter amount: ");
-        double amount = Double.parseDouble(scanner.nextLine());
+    public static void addDeposit(Scanner scanner) {
+        try {
+            System.out.print("Enter description: ");
+            String description = scanner.nextLine();
 
-        //PAYMENT IS POSITIVE, CREATES A NEW TRANSACTION OBJECT AND WRITES IT INTO THE FILE
-        saveTransaction(description, vendor, amount);
+            System.out.print("Enter vendor: ");
+            String vendor = scanner.nextLine();
+
+            double amount = 0;
+            boolean validInput = false;
+            while (!validInput) {
+                try {
+                    System.out.print("Enter amount: ");
+                    amount = Double.parseDouble(scanner.nextLine());
+                    if (amount > 0) {
+                        validInput = true;
+                    } else {
+                        System.out.println("Amount must be positive!");
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid amount! Please enter a number.");
+                }
+            }
+
+            // Create and save transaction...
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
     }
 
     // (MAKE PAYMENT)
 
     private static void makePayment(Scanner scanner) {
         System.out.println("\n--- Make Payment (Debit) ---");
-        System.out.print("Enter description: ");
-        String description = scanner.nextLine();
-        System.out.print("Enter vendor: ");
-        String vendor = scanner.nextLine();
-        System.out.print("Enter amount: ");
-        double amount = Double.parseDouble(scanner.nextLine());
 
-        // PAYMENT IS NEGATIVE, CREATES A NEW TRANSACTION OBJECT AND WRITES IT INTO THE FILE
-        saveTransaction(description, vendor, -Math.abs(amount));
+        try {
+            System.out.print("Enter description: ");
+            String description = scanner.nextLine();
+
+            System.out.print("Enter vendor: ");
+            String vendor = scanner.nextLine();
+
+            double amount = 0;
+            boolean validInput = false;
+
+            while (!validInput) {
+                try {
+                    System.out.print("Enter amount: ");
+                    amount = Double.parseDouble(scanner.nextLine());
+
+                    if (amount <= 0) {
+                        System.out.println("Amount must be positive!");
+                        continue;
+                    }
+
+                    validInput = true;
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid amount! Please enter a valid number.");
+                }
+            }
+
+            // PAYMENT IS NEGATIVE, CREATES A NEW TRANSACTION OBJECT AND WRITES IT INTO THE FILE
+            saveTransaction(description, vendor, -Math.abs(amount));
+
+        } catch (Exception e) {
+            System.out.println("Error processing payment: " + e.getMessage());
+        }
     }
 
     // (SAVE TRANSACTION: SAVES THE TRANSACTION OBJECT TO THE CSV FILE)
@@ -215,6 +257,7 @@ public class AccountingLedgerApp {
             System.out.println("Transaction saved!");
         } catch (IOException e) {
             System.out.println("Error saving transaction: " + e.getMessage());
+            return;
         }
     }
 
