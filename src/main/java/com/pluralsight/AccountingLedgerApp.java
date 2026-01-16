@@ -173,16 +173,57 @@ public class AccountingLedgerApp {
 
     private static void addDeposit(Scanner scanner) {
         System.out.println("\n--- Add Deposit ---");
-        System.out.print("Enter description: ");
+        System.out.print("Description (cash, Check): ");
         String description = scanner.nextLine();
         System.out.print("Enter vendor: ");
         String vendor = scanner.nextLine();
         System.out.print("Enter amount: ");
-        double amount = Double.parseDouble(scanner.nextLine());
+        double amount = Math.abs(Double.parseDouble(scanner.nextLine()));
+
+        saveTransaction(description, vendor, amount);
 
         //PAYMENT IS POSITIVE, CREATES A NEW TRANSACTION OBJECT AND WRITES IT INTO THE FILE
         saveTransaction(description, vendor, amount);
     }
+//    private static void addDepositMenu() {
+//        boolean addMore = true;
+////        All deposits should be positive.
+//        //  Ask the user for their deposit info
+//        while (addMore) {
+////            System.out.print("Enter deposit date (YYYY-MM-DD): ");
+////            String date = scanner.nextLine();
+//
+//            System.out.print("Enter your account number: ");
+//            String accountNumber = scanner.nextLine();
+//
+//            System.out.print("Enter your name: ");
+//            String name = scanner.nextLine();
+//
+//            System.out.print("Enter your deposit amount: ");
+//            double amount = scanner.nextDouble();
+//            scanner.nextLine(); //consumes the next line
+//
+//            // Auto date & time
+//            String date = LocalDate.now().toString();
+//            String time = LocalTime.now().withNano(0).toString(); // removes nanoseconds
+//
+//            // Write deposit to transactions.csv
+//            writeTransactionToFile(date, time, "Deposit to " + accountNumber, name, amount);
+//
+//
+//            // Ask if user wants to add another
+//            System.out.print("Would you like to make another deposit? (yes/no): ");
+//            String response = scanner.nextLine().trim().toLowerCase();
+//
+//            if (!response.equals("yes") && !response.equals("y")) {
+//                addMore = false;
+//                System.out.println("Returning to main menu...");
+//            } else {
+//                System.out.println("\n---Add another deposit---\n");
+//
+//            }
+//        }
+//    }
 
     // (MAKE PAYMENT)
 
